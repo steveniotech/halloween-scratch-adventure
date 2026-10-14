@@ -1,0 +1,26 @@
+# Local/private files are not curriculum assets
+.DS_Store
+._*
+Thumbs.db
+.env
+.env.*
+secrets/
+credentials/
+credentials*
+*.pem
+*.key
+private/
+student-data/
+student-data.*
+*.sb3
+# Development artifacts
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.log
+*.tmp
+coverage/
+.vscode/
+.idea/
