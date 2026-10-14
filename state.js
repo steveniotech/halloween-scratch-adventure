@@ -1,8 +1,8 @@
 'use strict';
 (function(root){
  const node=typeof module!=='undefined'&&module.exports;
- const D=node?require('./curriculum.js'):root.HalloweenCurriculum;
- const Q=node?require('./quiz.js'):root.HalloweenQuiz;
+ const D=node?require('./courses.js').curriculum:root.HalloweenCourses.curriculum;
+ const Q=node?require('./courses.js').quiz:root.HalloweenCourses.quiz;
  const KEY='halloween-scratch-adventure:v1',VERSION=1;
  const iso=()=>new Date().toISOString(),clone=value=>JSON.parse(JSON.stringify(value));
  const lesson=id=>D.lessons.find(l=>l.id===id),question=id=>Q.questions.find(q=>q.id===id);
@@ -15,15 +15,15 @@
  function record(state,id){if(!question(id))throw new Error('Unknown question');return state.quiz.records[id]||(state.quiz.records[id]={selectedOptionId:null,firstOptionId:null,firstAttemptCorrect:null,eventualCorrect:false,attempts:0,laterAttempts:0,hintUsed:false,wrongOptionIds:[],lastAttemptAt:null});}
  function normalize(raw){
   if(!isObject(raw)||raw.schemaVersion!==VERSION||!isObject(raw.quiz)||!isObject(raw.quiz.records)||!isObject(raw.selfChecks)||!isObject(raw.teacherConfirmation)||!isObject(raw.timestamps)||!Array.isArray(raw.quizBadges))throw new Error('Unsupported state structure');
-  const state=fresh();state.activeLesson=lesson(raw.activeLesson)?raw.activeLesson:null;
+  const state={...clone(raw),...fresh()};state.selfChecks=clone(raw.selfChecks);state.teacherConfirmation=clone(raw.teacherConfirmation);state.quiz={...clone(raw.quiz),records:clone(raw.quiz.records),session:null};state.timestamps={...clone(raw.timestamps),...state.timestamps};state.activeLesson=lesson(raw.activeLesson)?raw.activeLesson:null;
   state.timestamps.createdAt=validDate(raw.timestamps.createdAt)?raw.timestamps.createdAt:state.timestamps.createdAt;
   state.timestamps.latestActivityAt=validDate(raw.timestamps.latestActivityAt)?raw.timestamps.latestActivityAt:null;
   for(const l of D.lessons){
-   const checks=raw.selfChecks[l.id];if(isObject(checks)){state.selfChecks[l.id]={};for(const id of allowedChecks(l.id))if(typeof checks[id]==='boolean')state.selfChecks[l.id][id]=checks[id];}
-   const confirmation=raw.teacherConfirmation[l.id];if(isObject(confirmation)&&confirmation.confirmed===true&&validDate(confirmation.at))state.teacherConfirmation[l.id]={confirmed:true,at:confirmation.at,route:l.routes&&['A','B','C'].includes(confirmation.route)?confirmation.route:null};
+   const checks=raw.selfChecks[l.id];if(isObject(checks)){state.selfChecks[l.id]={...checks};for(const id of allowedChecks(l.id))if(typeof checks[id]==='boolean')state.selfChecks[l.id][id]=checks[id];}
+   const confirmation=raw.teacherConfirmation[l.id];if(isObject(confirmation)&&confirmation.confirmed===true&&validDate(confirmation.at))state.teacherConfirmation[l.id]={...confirmation,confirmed:true,at:confirmation.at,route:l.routes&&['A','B','C'].includes(confirmation.route)?confirmation.route:null};
   }
   for(const q of Q.questions){
-   const r=raw.quiz.records[q.id];if(r===undefined)continue;if(!isObject(r))throw new Error('Invalid question record');const safe=record(state,q.id),valid=id=>q.options.some(o=>o.id===id);
+   const r=raw.quiz.records[q.id];if(r===undefined)continue;if(!isObject(r))throw new Error('Invalid question record');const safe={...r};state.quiz.records[q.id]=safe;const valid=id=>q.options.some(o=>o.id===id);
    if(!Number.isSafeInteger(r.attempts)||r.attempts<0||(r.selectedOptionId!==null&&!valid(r.selectedOptionId))||(r.attempts>0&&!valid(r.firstOptionId))||typeof r.eventualCorrect!=='boolean'||typeof r.hintUsed!=='boolean'||!Array.isArray(r.wrongOptionIds))throw new Error('Invalid question record');
    safe.selectedOptionId=valid(r.selectedOptionId)?r.selectedOptionId:null;safe.attempts=count(r.attempts);safe.laterAttempts=Math.max(0,safe.attempts-1);
    safe.firstOptionId=safe.attempts&&valid(r.firstOptionId)?r.firstOptionId:null;
@@ -33,7 +33,7 @@
    safe.lastAttemptAt=validDate(r.lastAttemptAt)?r.lastAttemptAt:null;
   }
   // Rewards are derived from actual eventual quiz answers, never from a build/teacher flag.
-  state.quizBadges=D.lessons.filter(l=>Q.forLesson(l.id).every(q=>state.quiz.records[q.id]?.eventualCorrect)).map(l=>l.id);
+  state.quizBadges=[...new Set(raw.quizBadges.filter(id=>typeof id==='string'))]; // Preserve earned badges; normalization never grants new ones.
   const run=raw.quiz.session;
   if(isObject(run)&&lesson(run.lessonId)&&Array.isArray(run.ids)&&run.ids.length&&new Set(run.ids).size===run.ids.length&&run.ids.every(id=>question(id)?.lessonId===run.lessonId)){
    const ids=run.ids.slice();state.quiz.session={lessonId:run.lessonId,mode:run.mode==='review'?'review':'practice',ids,index:Math.min(ids.length-1,count(run.index)),responses:{},phase:run.phase==='complete'?'complete':'question',newBadge:run.newBadge===true};
@@ -71,8 +71,8 @@
   const checks=allowedChecks(id),self=checks.filter(cid=>state.selfChecks[id]?.[cid]).length;
   return {total:questions.length,attempted:attempted.length,firstCorrect,firstAccuracy:attempted.length?firstCorrect/attempted.length:null,eventual:records.filter(r=>r.eventualCorrect).length,attempts:records.reduce((n,r)=>n+r.attempts,0),laterAttempts:records.reduce((n,r)=>n+r.laterAttempts,0),hints:records.filter(r=>r.hintUsed).length,quizComplete:state.quizBadges.includes(id),selfChecked:self,selfTotal:checks.length,teacherConfirmed:state.teacherConfirmation[id]?.confirmed===true};
  }
- function summary(state){const rows=D.lessons.map(l=>stats(state,l.id)),sum=key=>rows.reduce((n,r)=>n+r[key],0);const attempted=sum('attempted'),firstCorrect=sum('firstCorrect');return {total:Q.questions.length,attempted,firstCorrect,firstAccuracy:attempted?firstCorrect/attempted:null,eventual:sum('eventual'),attempts:sum('attempts'),laterAttempts:sum('laterAttempts'),hints:sum('hints'),badgeCount:state.quizBadges.length,lessonCount:D.lessons.length,latest:state.timestamps.latestActivityAt};}
- function exportJSON(state){return JSON.stringify({schemaVersion:VERSION,exportedAt:iso(),progress:state},null,2);}
+ function summary(state,track=null){const selected=track?D.tracks.find(t=>t.id===track)?.lessons||[]:D.lessons;const rows=selected.map(l=>stats(state,l.id)),sum=key=>rows.reduce((n,r)=>n+r[key],0);const attempted=sum('attempted'),firstCorrect=sum('firstCorrect');return {total:sum('total'),attempted,firstCorrect,firstAccuracy:attempted?firstCorrect/attempted:null,eventual:sum('eventual'),attempts:sum('attempts'),laterAttempts:sum('laterAttempts'),hints:sum('hints'),badgeCount:selected.filter(l=>state.quizBadges.includes(l.id)).length,lessonCount:selected.length,latest:state.timestamps.latestActivityAt};}
+ function exportJSON(state){return JSON.stringify({schemaVersion:VERSION,exportedAt:iso(),courses:D.tracks.map(t=>({id:t.id,lessonIds:t.lessons.map(l=>l.id),questionIds:t.lessons.flatMap(l=>Q.forLesson(l.id).map(q=>q.id)),summary:summary(state,t.id)})),progress:state},null,2);}
  function resetStorage(storage){storage.removeItem(KEY);return fresh();}
  function createStore(provider){
   const obtain=()=>typeof provider==='function'?provider():provider;

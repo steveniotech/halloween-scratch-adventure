@@ -1,8 +1,19 @@
 # Halloween Scratch Adventure
 
-An original, unofficial Scratch curriculum for children **ages 8–11**. Pip the explorer and Lumi the friendly ghost restore pumpkin lights across **eight connected mini games** in the story **Halloween Rescue Adventure**.
+An original, unofficial standard Scratch curriculum with **16 independent projects and 56 concept questions**. Students use English; teachers use Simplified Chinese. This is not ScratchJr or a Scratch auto-grader.
 
-Students read short English guides, plan, build in the real standard Scratch editor, test, debug, and answer **32 original concept questions**. The teacher view is in Simplified Chinese. This is not ScratchJr, a replacement editor, or a Scratch auto-grader. It is independent and not affiliated with Scratch.
+**Beginner — Pip’s First Halloween** is an eight-project connected prequel for first-time Scratch users in Grades 1–3. Pip gets ready at home, follows pumpkin lights, and formally meets Lumi in B7. B8 leads to the original Pumpkin Gate. Grade level does not guarantee readiness; teachers support emerging readers and guide the new supporting logic.
+
+1. B1 **Pip Gets Ready** — events, four controls, sequence and reset; Space is a player declaration.
+2. B2 **Follow the Pumpkin Light** — automatic arrival with wait until.
+3. B3 **The Dancing Bat** — repeated bounded motion and continuous collision checks.
+4. B4 **Three Candies for the Trip** — shared numeric score, set/change and finite one-time collection.
+5. B5 **Pip Finds a Key** — shared state information and if/else.
+6. B6 **The Garden Shortcut** — save coordinates and undo wall collisions.
+7. B7 **Meet Lumi** — one finite CALL_LUMI sender and separate receivers.
+8. B8 **Ready for the Adventure** — playing/won guards and integration; gettingReady explains initialization.
+
+**Adventure — Halloween Rescue Adventure** retains all eight original lessons, their six milestones, all 32 original questions and the final three complete routes. Neither protected data file has changed. All lessons are accessible immediately; each track has its own progress summary and eight quiz badges. Website progress, student self-check and teacher confirmation are separate.
 
 ## Adventure route
 
@@ -19,7 +30,7 @@ Each lesson contains a complete script overview, **six build milestones**, reset
 
 ## 本地打开与教师设置
 
-本任务只构建本地项目，**尚未上传、提交或发布**。可直接在现代浏览器打开 `index.html`；页面使用相对路径和普通延迟脚本，不依赖fetch、模块加载或构建工具。file地址的存储策略因浏览器而异，推荐课堂使用本地静态服务器：
+本次为现有网站的本地增量更新，**本次尚未提交、推送或发布**。现有线上地址保持不变；这些修改不会自动上线。可直接在现代浏览器打开 `index.html`；页面使用相对路径和普通延迟脚本，不依赖fetch、模块加载或构建工具。file地址的存储策略因浏览器而异，推荐课堂使用本地静态服务器：
 
 ```sh
 cd /Users/steven/Projects/halloween-scratch-adventure
@@ -44,11 +55,11 @@ Menu wording was checked against the official [Scratch editor menu source](https
 
 ## Three separate statuses / 三种独立状态
 
-- **Quick Check complete:** the website can check its four concept answers. One pumpkin-light quiz badge per lesson, once only; the count is derived from actual lesson count.
+- **Quick Check complete:** the website checks three Beginner or four Adventure concept answers. One pumpkin-light quiz badge per lesson, once only; the count is derived from actual lesson count.
 - **Self-check:** build/test checkboxes are a student report. They do not prove correctness or award quiz badges.
 - **Teacher-confirmed project:** a teacher manually tests the real Scratch game using acceptance criteria, then records that confirmation locally. It is not automatic project validation and can be revoked.
 
-课堂验收请在真实Scratch运行游戏。不要将测验结果、自报勾选或教师确认混称为网站验证代码。八课是八个独立Scratch工程，用故事与技能串联；score、hasKey、背包及库存不会自动跨工程继承。网站徽章也不是Scratch工程变量。
+课堂验收请在真实Scratch运行游戏。不要将测验结果、自报勾选或教师确认混称为网站验证代码。十六课是十六个独立Scratch工程，用故事与技能串联；score、hasKey、背包及库存不会自动跨工程继承。网站徽章也不是Scratch工程变量。
 
 中文教师附录「可选：月底整合 Adventure Map」给出额外整合方案：单一菜单控制器、currentLevel、每关START/END消息、有限重置、inactive门控、克隆删除、累计collectedLights及重玩语义。它要求重构和单独测试，不是广播就会自动合并项目。
 
@@ -78,11 +89,11 @@ Only key **`halloween-scratch-adventure:v1`** is used. Persisted fields: schema 
 
 Your work stays in this browser on this device. Different browsers, devices, domains, file URLs, and local ports may have separate storage. Shared devices keep progress until reset. No JSON import in version 1.
 
-Missing storage starts fresh. Malformed JSON or unsupported data blocks automatic saving and **does not overwrite the original record**. Work can continue in memory with an English warning. Export the current session where downloads are supported, then choose explicit recovery/reset with two separate confirmations if desired. This recovery removes the old key; it does not repair or import damaged data. Cancelling either confirmation keeps stored data. When storage is blocked, export preserves memory progress; failed reset cannot guarantee browser data was removed.
+Missing storage starts fresh. Malformed JSON or unsupported schema data blocks automatic saving and **does not overwrite the original record**. Work can continue in memory with an English warning. Export the current session where downloads are supported, then choose explicit recovery/reset with two separate confirmations if desired. This recovery removes the old key; it does not repair or import damaged data. Cancelling either confirmation keeps stored data. When storage is blocked, export preserves memory progress; failed reset cannot guarantee browser data was removed.
 
 Teacher preview clones actual progress into memory: no saving, real badges, or changes to student records. Exiting restores the real state. Refresh exits preview. First-attempt results stay immutable through retries and missed-question review. Accuracy divides by attempted questions; attempted count and coverage are shown separately. Hints count distinct questions with a used hint. Later attempts have a separate counter.
 
-Export downloads valid JSON with `schemaVersion`, `exportedAt`, and `progress`. Reset uses `removeItem` for this single key, never `localStorage.clear()`.
+Export downloads valid JSON with `schemaVersion`, `exportedAt`, `courses` (both tracks, stable lesson/question IDs and summaries), and `progress`. The existing progress schema remains version 1. Normalization now preserves earned badge IDs and unknown extension fields instead of deriving new badges during loading; no migration awards a Beginner badge. New Beginner records are created only on interaction. Original active lesson IDs still resolve. This is the only intentional compatibility adjustment to normalization; the storage key remains unchanged. Reset uses `removeItem` for this single key, never `localStorage.clear()`.
 
 ## Files and tests
 
@@ -90,6 +101,12 @@ Export downloads valid JSON with `schemaVersion`, `exportedAt`, and `progress`. 
 - `styles.css`: original responsive Halloween palette, focus states, nesting and reduced-motion rules.
 - `curriculum.js`: all stories, projects, routes, scripts and Chinese teaching notes.
 - `quiz.js`: 32 original questions and pure grading helpers.
+- `beginner-curriculum.js`: eight prequel lessons, staged cards and Chinese support.
+- `beginner-quiz.js`: 24 Beginner questions.
+- `courses.js`: additive track registry; original exports remain compatible.
+- `tests/baseline/`: immutable pre-change curriculum/question copies, original state module and SHA-256/HEAD manifest.
+- `test-beginner.js`: preservation, content and original-state compatibility tests.
+- `tests/`: optional local browser QA server, original-version state fixture and browser layout page.
 - `state.js`: schema, storage recovery, quiz progression, statistics and badge logic.
 - `app.js`: English student navigation, block cards, self-checks and quiz handlers.
 - `teacher.js`: Chinese teacher view, preview, manual confirmation, export and reset.
@@ -103,23 +120,24 @@ Node.js is only needed to run the tests; no npm install or dependencies:
 ```sh
 node --check curriculum.js
 node --check quiz.js
+node --check beginner-curriculum.js
+node --check beginner-quiz.js
+node --check courses.js
 node --check state.js
 node --check app.js
 node --check teacher.js
 node --check test-app.js
+node --check test-beginner.js
 node test-app.js
+node test-beginner.js
 ```
 
 Content tests and mock DOM handlers do not prove game correctness, real browser behavior, or accessibility certification. See TESTING.md for actual results and unperformed checks.
 
-## Future GitHub Pages — not published
+## Existing GitHub site — this update is local
 
-Suggested future repository: `steveniotech/halloween-scratch-adventure`. Creation, commit, push, and publication require a later separate instruction.
+Repository: `steveniotech/halloween-scratch-adventure`. Existing URL remains [Halloween Scratch Adventure](https://steveniotech.github.io/halloween-scratch-adventure/); teacher URL ends in `/#teacher`. This task did not check live deployment status or change GitHub Pages. No commit, push or publication was performed. Local modifications are not live until a separately authorized push/deployment.
 
-Future configuration after uploading: **Settings → Pages → Deploy from a branch → main → /(root) → Save**.
+All runtime resources use relative paths. Direct `index.html`, a local static server, and the repository subpath are supported. No runtime fetch, dependencies, remote fonts, trackers or automatic audio were added.
 
-Expected future student URL (NOT live): `https://steveniotech.github.io/halloween-scratch-adventure/`
-
-Expected future teacher URL (NOT live): `https://steveniotech.github.io/halloween-scratch-adventure/#teacher`
-
-Local completion does not mean upload or publication. All runtime assets are relative, suitable for a project subpath.
+For isolated browser QA (not classroom progress), run `python3 tests/serve.py`, open `http://127.0.0.1:8767/tests/fixture.html`, then its link. This seeds synthetic original-version progress only if that origin’s project key is missing. Do not seed a real classroom origin. `tests/browser-layout.html` measures the real site at 375px and inspects the export Blob while suppressing download.

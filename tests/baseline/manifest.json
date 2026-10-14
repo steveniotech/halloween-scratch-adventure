@@ -1,0 +1,12 @@
+{
+  "head": "c398d485bcf3906395b9d1415b570b0d0368c270",
+  "branch": "main",
+  "workingTree": "clean",
+  "root": "/Users/steven/Projects/halloween-scratch-adventure",
+  "sha256": {
+    "curriculum.js": "cb1f57699a8e2ae534e8bda53cff7e1a655bb935b90217c83da063a3a3c322f0",
+    "quiz.js": "815cbddab1db5ee57e8db592ba38fecc8af4fa263339cd06548a8be4236e2186",
+    "state.js": "3a02ab72ee4d275cb3e214b00ba7ba3e2dd58acdad99ad74031eac7f4f5544aa"
+  },
+  "provenance": "curriculum.js and quiz.js copied before edits; state.js retrieved unchanged with git show HEAD:state.js for old-version compatibility tests."
+}

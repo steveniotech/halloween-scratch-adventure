@@ -54,7 +54,7 @@ S.startQuiz(state,id,'review');assert.deepEqual(state.quiz.session.ids,[first.id
 assert.equal(state.quiz.records[first.id].firstAttemptCorrect,false);assert.equal(state.quiz.records[first.id].firstOptionId,wrong);assert.equal(state.quiz.records[first.id].laterAttempts,2);assert.equal(state.quizBadges.length,1);
 assert.deepEqual(S.normalize(JSON.parse(JSON.stringify(state))),state);
 const exported=JSON.parse(S.exportJSON(state));assert.equal(exported.schemaVersion,1);assert.ok(Number.isFinite(Date.parse(exported.exportedAt)));assert.deepEqual(exported.progress,state);
-assert.equal(S.summary(state).attempted,4);assert.equal(S.summary(state).firstAccuracy,.75);assert.equal(S.summary(state).total,32);
+assert.equal(S.summary(state).attempted,4);assert.equal(S.summary(state).firstAccuracy,.75);assert.equal(S.summary(state).total,56);
 S.confirmProject(state,'festival','B');assert.equal(state.teacherConfirmation.festival.route,'B');assert.equal(state.quizBadges.length,1);assert.equal(S.stats(state,'festival').quizComplete,false);
 for(const l of D.lessons.slice(1)){S.startQuiz(state,l.id);for(const q of Q.forLesson(l.id)){S.select(state,q.correctOptionId);S.check(state);S.next(state);}}
 assert.equal(state.quizBadges.length,8);assert.equal(new Set(state.quizBadges).size,8);assert.equal(S.summary(state).eventual,32);
@@ -77,14 +77,14 @@ function browser(initial=[],route='',storageOverride=null){
  const document={getElementById:get,querySelector:get,createElement:()=>new Element(),documentElement:{lang:'en'},activeElement:new Element('outside')};
  const location={hash:route,pathname:'/adventure/index.html',search:''};
  const context=vm.createContext({document,location,history:{replaceState:()=>{location.hash='';}},window:{addEventListener(){}},localStorage:local,Blob:class{},URL:{createObjectURL:()=> 'blob:export',revokeObjectURL(){}},setTimeout:()=>1,console});
- for(const file of ['curriculum.js','quiz.js','state.js','app.js','teacher.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,file),'utf8'),context,{filename:file});
+ for(const file of ['curriculum.js','quiz.js','beginner-curriculum.js','beginner-quiz.js','courses.js','state.js','app.js','teacher.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,file),'utf8'),context,{filename:file});
  function click(action,data={},teacher=false){const t=new Element();t.dataset={...data,[teacher?'teacher':'action']:action};const event={target:{closest:selector=>selector===(teacher?'[data-teacher]':'[data-action]')?t:null}};for(const cb of get('main').listeners.click)cb(event);}
  function change(t){for(const cb of get('main').listeners.change)cb({target:t});}
  return {local,get,context,click,change,download:()=>download,focus:()=>focused,Element};
 }
 const B=browser(),A=B.context.HalloweenApp,C=B.context.HalloweenState;
-assert.equal((B.get('main').innerHTML.match(/class="map-card /g)||[]).length,8);assert.ok(!zh.test(B.get('main').innerHTML));
-for(const l of D.lessons){B.click('lesson',{lesson:l.id});for(let section=0;section<10;section++){B.click('section',{section:String(section)});assert.ok(!zh.test(B.get('main').innerHTML),l.id+' section '+section);}}
+assert.equal((B.get('main').innerHTML.match(/class="map-card /g)||[]).length,16);assert.ok(!zh.test(B.get('main').innerHTML));
+for(const l of require('./courses.js').curriculum.lessons){B.click('lesson',{lesson:l.id});for(let section=0;section<10;section++){B.click('section',{section:String(section)});assert.ok(!zh.test(B.get('main').innerHTML),l.id+' section '+section);}}
 B.click('lesson',{lesson:'gate'});B.click('section',{section:'3'});const checkElement=new B.Element();checkElement.dataset.selfCheck='build-1';checkElement.checked=true;B.change(checkElement);assert.equal(A.getState().selfChecks.gate['build-1'],true);assert.equal(A.getState().quizBadges.length,0);
 B.click('section',{section:'6'});B.click('quiz-start');B.click('quiz-select',{option:wrong});assert.equal(A.getState().quiz.records[first.id].attempts,0);assert.ok(!B.get('main').innerHTML.includes('Not quite yet'));B.click('quiz-check');assert.match(B.get('main').innerHTML,/Not quite yet/);B.click('quiz-hint');B.click('quiz-retry');B.click('quiz-select',{option:first.correctOptionId});B.click('quiz-check');B.click('quiz-next');
 const refreshed=browser([[S.KEY,B.local.data.get(S.KEY)]]);assert.equal(refreshed.context.HalloweenApp.getState().quiz.session.index,1);assert.match(refreshed.get('main').innerHTML,/Question 2 of 4/);
@@ -108,11 +108,27 @@ const teacherRoute=browser([],'#teacher');assert.match(teacherRoute.get('main').
 console.log('DOM-handler substitutes passed: all lesson sections, quiz wrong/hint/retry/completion/review, refresh, preview storage isolation, teacher confirmation, export, both reset cancellation paths and explicit malformed recovery. Not real-browser tests.');
 const html=fs.readFileSync(path.join(__dirname,'index.html'),'utf8');assert.ok(!zh.test(html));
 for(const [,ref] of html.matchAll(/(?:src|href)="([^"#]+)"/g)){assert.ok(ref.startsWith('./'),'Relative runtime asset '+ref);assert.ok(fs.existsSync(path.join(__dirname,ref)));}
-for(const file of ['curriculum.js','quiz.js','state.js','app.js','teacher.js','styles.css','index.html']){
+for(const file of ['curriculum.js','quiz.js','beginner-curriculum.js','beginner-quiz.js','courses.js','state.js','app.js','teacher.js','styles.css','index.html']){
  const text=fs.readFileSync(path.join(__dirname,file),'utf8');assert.ok(!/\beval\s*\(|new\s+Function\s*\(|\bfetch\s*\(|XMLHttpRequest|sendBeacon|localStorage\.clear\s*\(|@import/.test(text));
  const external=[...text.matchAll(/https?:\/\/[^\s'"<>]+/g)].map(m=>m[0]);assert.ok(external.every(url=>url==='https://scratch.mit.edu/projects/editor/'),'Only explicit editor navigation permitted');
 }
 const app=fs.readFileSync(path.join(__dirname,'app.js'),'utf8');assert.match(app,/target="_blank" rel="noopener noreferrer"/);assert.match(app,/src="\.\/assets\/adventure.svg"/);
 assert.ok(fs.existsSync(path.join(__dirname,'assets/adventure.svg')));const svg=fs.readFileSync(path.join(__dirname,'assets/adventure.svg'),'utf8');assert.ok(!/<script|<image|href=|onload=/i.test(svg));
 console.log('Static checks passed: relative local assets, no unexpected external runtime dependencies, no evaluation, no global storage clear, explicit protected Scratch editor link.');
-console.log('All automated tests passed. Scratch gameplay and real-browser/accessibility checks remain NOT RUN.');
+console.log('All automated tests passed. These automated checks do not run Scratch or certify accessibility; see TESTING.md for separate browser results.');
+
+// Additive track UI and quiz handlers use the same implementation as Adventure.
+const beginnerQuestions=require('./beginner-quiz.js').questions;
+const N=browser();N.click('lesson',{lesson:'beginner-ready'});N.click('section',{section:'6'});N.click('quiz-start');
+const nq=beginnerQuestions[0],nw=nq.options.find(o=>o.id!==nq.correctOptionId).id;
+N.click('quiz-select',{option:nw});N.click('quiz-check');N.click('quiz-hint');N.click('quiz-retry');N.click('quiz-select',{option:nq.correctOptionId});N.click('quiz-check');N.click('quiz-next');
+for(const q of beginnerQuestions.filter(q=>q.lessonId==='beginner-ready').slice(1)){N.click('quiz-select',{option:q.correctOptionId});N.click('quiz-check');N.click('quiz-next');}
+assert.equal(N.context.HalloweenApp.getState().quiz.records[nq.id].firstAttemptCorrect,false);
+assert.equal(N.context.HalloweenApp.getState().quiz.records[nq.id].hintUsed,true);
+assert.match(N.get('main').innerHTML,/3 \/ 3/);
+N.context.HalloweenApp.showTeacher();N.click('filter',{track:'beginner'},true);assert.ok(N.get('main').innerHTML.includes('beginner-ready'));assert.ok(!N.get('main').innerHTML.includes('data-lesson="festival"'));
+N.click('filter',{track:'adventure'},true);assert.ok(N.get('main').innerHTML.includes('data-lesson="festival"'));assert.ok(!N.get('main').innerHTML.includes('data-lesson="beginner-ready"'));
+const real=JSON.stringify(N.context.HalloweenApp.getState()),saved=N.local.writes.length;
+N.click('preview',{lesson:'beginner-gate'},true);N.click('section',{section:'6'});N.click('quiz-start');for(const q of beginnerQuestions.filter(q=>q.lessonId==='beginner-gate')){N.click('quiz-select',{option:q.correctOptionId});N.click('quiz-check');N.click('quiz-next');}
+assert.equal(JSON.stringify(N.context.HalloweenApp.getState()),real);assert.equal(N.local.writes.length,saved);N.click('exit-preview');
+console.log('Additive DOM substitutes passed: Beginner quiz retries/hints, track filters, B8 preview isolation.');
